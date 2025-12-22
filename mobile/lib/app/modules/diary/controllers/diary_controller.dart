@@ -20,15 +20,21 @@ class DiaryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchLog();
+    fetchDailyLog();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    fetchDailyLog();
   }
 
   void changeDate(DateTime date) {
     selectedDate.value = date;
-    fetchLog();
+    fetchDailyLog();
   }
 
-  Future<void> fetchLog() async {
+  Future<void> fetchDailyLog() async {
     isLoading.value = true;
     try {
       final user = box.read('user');

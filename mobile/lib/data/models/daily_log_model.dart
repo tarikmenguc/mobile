@@ -16,10 +16,30 @@ class DailyLogModel {
   factory DailyLogModel.fromJson(Map<String, dynamic> json) {
     return DailyLogModel(
       date: json['date'] ?? '',
-      toplamKalori: json['toplam_kalori'] ?? 0,
-      suTuketimi: json['su_tuketimi_ml'] ?? 0,
+      toplamKalori: int.tryParse(json['toplam_kalori'].toString()) ?? 0,
+      suTuketimi: int.tryParse(json['su_tuketimi_ml'].toString()) ?? 0,
       yemekler: json['yemekler'] ?? [],
-      aktiviteler: json['aktiviteler'] ?? [],
+      aktiviteler: (json['aktiviteler'] as List?)
+              ?.map((e) => Activity.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class Activity {
+  final String isim;
+  final int sureDk;
+  final int yakilanKalori;
+
+  Activity(
+      {required this.isim, required this.sureDk, required this.yakilanKalori});
+
+  factory Activity.fromJson(Map<String, dynamic> json) {
+    return Activity(
+      isim: json['isim'] ?? 'Bilinmeyen Aktivite',
+      sureDk: int.tryParse(json['sure_dk'].toString()) ?? 0,
+      yakilanKalori: int.tryParse(json['yakilan_kalori'].toString()) ?? 0,
     );
   }
 }

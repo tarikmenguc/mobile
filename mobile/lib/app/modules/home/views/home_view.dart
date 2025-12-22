@@ -38,6 +38,7 @@ class HomeView extends GetView<HomeController> {
             const SizedBox(height: 24),
 
             // 3. Quick Actions or List (Placeholder for next prompt)
+            // 3. Quick Actions
             const Text("Günlük Aktiviteler & Yemekler",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
@@ -80,12 +81,6 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.toNamed(Routes.FOOD_ENTRY);
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -99,8 +94,12 @@ class HomeView extends GetView<HomeController> {
         children: [
           Obx(() {
             final double taken = controller.takenCalories.value.toDouble();
+            final double burned = controller.burnedCalories.value.toDouble();
             final double goal = controller.calorieGoal.value.toDouble();
-            final double remaining = (goal - taken).clamp(0, goal);
+
+            // New Formula: Remaining = (Goal + Burned) - Taken
+            final double netGoal = goal + burned;
+            final double remaining = (netGoal - taken).clamp(0, netGoal);
 
             return PieChart(
               PieChartData(
@@ -128,22 +127,40 @@ class HomeView extends GetView<HomeController> {
           }),
           // Center Text
           Center(
-            child: Obx(() => Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      (controller.calorieGoal.value -
-                              controller.takenCalories.value)
-                          .toString(),
-                      style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    const Text("Kalan Kcal",
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                )),
+            child: Obx(() {
+              final double taken = controller.takenCalories.value.toDouble();
+              final double burned = controller.burnedCalories.value.toDouble();
+              final double goal = controller.calorieGoal.value.toDouble();
+              final double netRemaining = (goal + burned) - taken;
+
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    netRemaining.toStringAsFixed(0),
+                    style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  const Text("Kalan Kcal",
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.local_fire_department,
+                          color: Colors.red, size: 14),
+                      Text("${burned.toStringAsFixed(0)} Yakılan",
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold))
+                    ],
+                  )
+                ],
+              );
+            }),
           )
         ],
       ),

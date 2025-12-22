@@ -74,12 +74,13 @@ class RootView extends GetView<RootController> {
                     ),
                     ListTile(
                       leading:
-                          const Icon(Icons.directions_run, color: Colors.blue),
+                          const Icon(Icons.fitness_center, color: Colors.blue),
                       title: const Text("Aktivite Ekle"),
                       onTap: () {
-                        Get.back();
-                        // Get.toNamed(Routes.ACTIVITY_ADD);
-                        Get.snackbar("Yakında", "Aktivite ekleme yakında...");
+                        if (Get.isBottomSheetOpen ?? false) {
+                          Get.back(); // close sheet safely
+                        }
+                        Get.toNamed(Routes.ACTIVITY_ADD);
                       },
                     ),
                   ],

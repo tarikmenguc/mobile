@@ -99,9 +99,9 @@ class DiaryView extends GetView<DiaryController> {
                                 child: ListTile(
                                   leading: const Icon(Icons.fitness_center,
                                       color: Colors.blue),
-                                  title: Text(item['type'] ?? 'Bilinmiyor'),
+                                  title: Text(item.isim),
                                   subtitle: Text(
-                                      "${item['duration']} dakika"), // Backend might not have calories yet
+                                      "${item.sureDk} dakika • ${item.yakilanKalori} kcal"),
                                 ),
                               );
                             },

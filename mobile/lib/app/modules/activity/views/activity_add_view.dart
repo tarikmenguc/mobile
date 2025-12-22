@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../controllers/activity_controller.dart';
 
@@ -28,8 +29,9 @@ class ActivityAddView extends GetView<ActivityController> {
                     return DropdownMenuItem(value: type, child: Text(type));
                   }).toList(),
                   onChanged: (val) {
-                    if (val != null)
+                    if (val != null) {
                       controller.selectedActivityType.value = val;
+                    }
                   },
                 )),
 
@@ -39,6 +41,8 @@ class ActivityAddView extends GetView<ActivityController> {
             TextField(
               controller: controller.durationController,
               keyboardType: TextInputType.number,
+              autofocus: true,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: const InputDecoration(
                   labelText: "Süre (dakika)",
                   border: OutlineInputBorder(),

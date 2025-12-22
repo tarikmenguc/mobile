@@ -84,9 +84,9 @@ class FoodController extends GetxController {
     try {
       String fileName = selectedImage.value!.path.split('/').last;
 
-      // Basit FormData (Key: file)
+      // Basit FormData (Key: image olarak güncellendi)
       dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
-        "file": await dio_pkg.MultipartFile.fromFile(
+        "image": await dio_pkg.MultipartFile.fromFile(
           selectedImage.value!.path,
           filename: fileName,
         ),

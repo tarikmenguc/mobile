@@ -1,2 +1,18 @@
+# Hassas Dosyalar
 .env
+.env.local
+.env.*
+
+# Node Bağımlılıkları
 node_modules/
+npm-debug.log*
+
+# Flutter/Dart Bağımlılıkları
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+
+# IDE Ayarları
+.idea/
+.vscode/

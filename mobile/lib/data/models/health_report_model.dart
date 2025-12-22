@@ -13,11 +13,12 @@ class HealthReportModel {
 
   factory HealthReportModel.fromJson(Map<String, dynamic> json) {
     return HealthReportModel(
-      id: json['_id'],
-      aiAnalizMetni: json['ai_analiz_metni'] ?? '',
-      oneriler:
-          json['oneriler'] != null ? List<String>.from(json['oneriler']) : [],
-      tarih: json['tarih'] ?? '',
+      id: json['_id']?.toString(), // Güvenli dönüşüm
+      aiAnalizMetni: json['ai_analiz_metni']?.toString() ?? '',
+      oneriler: json['oneriler'] != null
+          ? (json['oneriler'] as List).map((e) => e.toString()).toList()
+          : [],
+      tarih: json['tarih']?.toString() ?? '',
     );
   }
 }

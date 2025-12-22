@@ -17,7 +17,8 @@ const analyzeAndSaveReport = async (userId, fileBuffer, mimeType) => {
     try {
         // 1. Gemini Modeli Hazırla
         // 1. Gemini Modeli Hazırla
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Working model from Food Service
+        // 1. Gemini Modeli Hazırla
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Working model from Food Service
 
         // 2. Prompt
         const prompt = `
@@ -47,7 +48,7 @@ const analyzeAndSaveReport = async (userId, fileBuffer, mimeType) => {
         const text = response.text();
 
         // 5. JSON Temizliği
-        const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const cleanedText = text.replace(/```json|```/g, "").trim();
         const parsedData = JSON.parse(cleanedText);
 
         // 6. Veritabanına Kayıt
@@ -60,6 +61,7 @@ const analyzeAndSaveReport = async (userId, fileBuffer, mimeType) => {
         return report;
 
     } catch (error) {
+        console.log("FULL API ERROR:", JSON.stringify(error, null, 2));
         console.error("Health Analysis Error:", error);
         throw new Error('Sağlık raporu analiz edilemedi.');
     }

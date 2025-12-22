@@ -8,15 +8,15 @@ const healthService = require('../services/healthService');
 const analyze = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ message: 'Lütfen bir dosya yükleyin.' });
+            return res.status(400).json({ success: false, message: 'Lütfen bir dosya yükleyin.' });
         }
 
-        // Auth middleware aktifleşince req.user.id
         const userId = req.body.userId;
-
         if (!userId) {
-            return res.status(400).json({ message: 'User ID gereklidir.' });
+            return res.status(400).json({ success: false, message: 'User ID gereklidir.' });
         }
+
+        console.log('Gemini analizi başladı...');
 
         const report = await healthService.analyzeAndSaveReport(
             userId,
@@ -24,10 +24,18 @@ const analyze = async (req, res) => {
             req.file.mimetype
         );
 
-        res.status(200).json(report);
+        console.log('Gemini yanıtı geldi.');
+
+        res.status(200).json({ success: true, data: report });
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("DETAYLI_HATA_ANALIZI:", {
+            mesaj: error.message,
+            stack: error.stack,
+            dosyaVarMi: !!req.file,
+            dosyaTipi: req.file?.mimetype
+        });
+        return res.status(500).json({ success: false, error: error.message });
     }
 };
 

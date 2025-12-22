@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dio_pkg;
@@ -44,7 +45,12 @@ class FoodController extends GetxController {
     print("PERMISSION STATUS: $status");
 
     if (status.isPermanentlyDenied) {
-      Get.snackbar('İzin Gerekli', 'Lütfen ayarlardan izin verin.');
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(const SnackBar(
+          content: Text('İzin Gerekli: Lütfen ayarlardan izin verin.'),
+          backgroundColor: Colors.orange,
+        ));
+      }
       openAppSettings();
       return;
     }
@@ -62,50 +68,51 @@ class FoodController extends GetxController {
       }
     } catch (e) {
       print("PICK IMAGE ERROR: $e");
-      Get.snackbar('Hata', 'Fotoğraf seçilemedi: $e');
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+          content: Text('Fotoğraf seçilemedi: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
   Future<void> analyzeImage() async {
-    if (selectedImage.value == null) {
-      print("ANALYZE ABORTED: No image selected");
-      return;
-    }
+    if (selectedImage.value == null) return;
 
-    print("STARTING ANALYSIS...");
     isLoading.value = true;
     try {
       String fileName = selectedImage.value!.path.split('/').last;
-      print("FILE NAME: $fileName");
 
+      // Basit FormData (Key: file)
       dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
-        "image": await dio_pkg.MultipartFile.fromFile(
+        "file": await dio_pkg.MultipartFile.fromFile(
           selectedImage.value!.path,
           filename: fileName,
         ),
       });
 
-      print("SENDING TO BACKEND (/food/analyze)...");
       final response = await dio.post('/food/analyze', data: formData);
-      print("BACKEND RESPONSE CODE: ${response.statusCode}");
-      print("BACKEND RESPONSE DATA: ${response.data}");
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        print("ANALYSIS SUCCESS! Mapping data...");
         analyzedFood.value = response.data['data'];
-
-        // Navigate to Confirmation Screen
         Get.toNamed(Routes.AI_ANALYSIS);
       } else {
-        print("ANALYSIS FAILED: ${response.data}");
-        Get.snackbar("Hata", "Analiz başarısız oldu.");
+        if (Get.context != null) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(const SnackBar(
+            content: Text("Analiz başarısız oldu."),
+            backgroundColor: Colors.red,
+          ));
+        }
       }
-    } on dio_pkg.DioException catch (e) {
-      print("DIO ERROR: ${e.message}");
-      print("DIO RESPONSE: ${e.response?.data}");
-      Get.snackbar('Hata', 'AI Analizi başarısız: ${e.message}');
     } catch (e) {
-      print("UNKNOWN ERROR: $e");
+      print("Simple Analyze Error: $e");
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+          content: Text("Hata: $e"),
+          backgroundColor: Colors.red,
+        ));
+      }
     } finally {
       isLoading.value = false;
     }
@@ -136,10 +143,20 @@ class FoodController extends GetxController {
       }
 
       Get.offAllNamed(Routes.HOME);
-      Get.snackbar("Başarılı", "${foods.length} besin günlüğe eklendi! 🥗");
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+          content: Text("${foods.length} besin günlüğe eklendi! 🥗"),
+          backgroundColor: Colors.green,
+        ));
+      }
     } catch (e) {
       print("CONFIRM ERROR: $e");
-      Get.snackbar('Hata', 'Kayıt başarısız: $e');
+      if (Get.context != null) {
+        ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+          content: Text('Kayıt başarısız: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
     } finally {
       isLoading.value = false;
     }

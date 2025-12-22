@@ -28,11 +28,23 @@ class HealthView extends GetView<HealthController> {
                   const SizedBox(height: 10),
                   const Text("Henüz analiz edilmiş bir tahlil yok.",
                       style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 20),
+                  // Buton: Yeni Tahlil Yükle (Kamera/Galeri)
                   ElevatedButton.icon(
-                      onPressed: controller.pickAndAnalyze,
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text("Yeni Tahlil Yükle"))
+                    onPressed: () => controller.showImageSourceSelection(),
+                    icon: const Icon(Icons.add_a_photo, color: Colors.white),
+                    label: const Text(
+                      "Yeni Tahlil Fotoğrafı Çek/Yükle",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  )
                 ],
               ));
             }
@@ -86,14 +98,7 @@ class HealthView extends GetView<HealthController> {
               : const SizedBox.shrink()),
         ],
       ),
-      floatingActionButton: Obx(() => controller.isAnalyzing.value
-          ? const SizedBox.shrink()
-          : FloatingActionButton.extended(
-              onPressed: controller.pickAndAnalyze,
-              label: const Text("Analiz Et"),
-              icon: const Icon(Icons.auto_awesome),
-              backgroundColor: Colors.teal,
-            )),
+      floatingActionButton: null,
     );
   }
 }

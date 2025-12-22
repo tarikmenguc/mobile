@@ -7,21 +7,29 @@ const storage = multer.memoryStorage();
 // Dosya filtresi: Sadece resim dosyaları
 const path = require('path');
 
-// Dosya filtresi: Resim dosyaları
+// Dosya filtresi: Sadece Resim dosyaları (PDF kaldırıldı)
 const fileFilter = (req, file, cb) => {
-    // 1. Mime Type Kontrolü
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/heic'];
+    // Debug Log
+    console.log("Gelen Tip:", file.mimetype);
 
-    // 2. Uzantı Kontrolü (Fallback)
-    const filetypes = /jpeg|jpg|png|webp|heic/;
+    // 1. Mime Type Kontrolü (Resim + PDF + Octet Stream)
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/heic', 'application/pdf', 'application/octet-stream'];
+
+    // 2. Uzantı Kontrolü
+    const filetypes = /jpeg|jpg|png|webp|heic|pdf/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedMimes.includes(file.mimetype);
 
-    if (mimetype || extname) {
+    // Octet stream gelirse uzantıya güveneceğiz
+    if (file.mimetype === 'application/octet-stream' && extname) {
+        return cb(null, true);
+    }
+
+    if (mimetype && extname) {
         cb(null, true);
     } else {
         console.log(`REJECTED FILE: ${file.originalname} - MIME: ${file.mimetype}`);
-        cb(new Error(`Sadece resim dosyası yükleyebilirsiniz! (Gelen: ${file.mimetype})`), false);
+        cb(new Error(`Desteklenmeyen dosya formatı! (Mime: ${file.mimetype})`), false);
     }
 };
 

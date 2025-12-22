@@ -13,6 +13,10 @@ class HomeController extends GetxController {
   final isLoading = false.obs;
   // We store the whole log object or individual fields. Individual is easier for UI binding initially.
   final takenCalories = 0.obs;
+  final takenCarbs = 0.obs;
+  final takenProtein = 0.obs;
+  final takenFat = 0.obs;
+
   final burnedCalories = 0.obs;
   final waterMl = 0.obs;
   final foods = <dynamic>[].obs; // List of foods
@@ -20,6 +24,11 @@ class HomeController extends GetxController {
   // Goals (defaults, should come from User Profile)
   final calorieGoal = 2000.obs;
   final waterGoal = 2500.obs;
+
+  // Macro Goals (Calculated or Fixed)
+  final carbsGoal = 250.obs; // ~50% of 2000
+  final proteinGoal = 100.obs; // ~20% of 2000
+  final fatGoal = 67.obs; // ~30% of 2000
 
   @override
   void onInit() {
@@ -29,6 +38,14 @@ class HomeController extends GetxController {
     if (user != null && user['hedefler'] != null) {
       calorieGoal.value = user['hedefler']['gunluk_kalori'] ?? 2000;
       waterGoal.value = user['hedefler']['su_hedefi_ml'] ?? 2500;
+
+      // Auto-calculate macro goals based on calories (Classic: 50C/30F/20P)
+      // Carbs: 50% / 4
+      carbsGoal.value = (calorieGoal.value * 0.50 / 4).round();
+      // Protein: 20% / 4
+      proteinGoal.value = (calorieGoal.value * 0.20 / 4).round();
+      // Fat: 30% / 9
+      fatGoal.value = (calorieGoal.value * 0.30 / 9).round();
     }
     fetchTodayLog();
   }
@@ -52,9 +69,28 @@ class HomeController extends GetxController {
         burnedCalories.value = data['toplam_yakilan_kalori'] ?? 0;
         waterMl.value = data['su_tuketimi_ml'] ?? 0;
         foods.value = data['yemekler'] ?? [];
+
+        // Calculate Macros from Foods List
+        int tCarbs = 0;
+        int tProtein = 0;
+        int tFat = 0;
+
+        for (var food in foods) {
+          // Check if fields exist and are numbers
+          tCarbs += (food['karbonhidrat'] ?? 0) as int;
+          tProtein += (food['protein'] ?? 0) as int;
+          tFat += (food['yag'] ?? 0) as int;
+        }
+
+        takenCarbs.value = tCarbs;
+        takenProtein.value = tProtein;
+        takenFat.value = tFat;
       } else {
         // No log yet, all 0
         takenCalories.value = 0;
+        takenCarbs.value = 0;
+        takenProtein.value = 0;
+        takenFat.value = 0;
         burnedCalories.value = 0;
         waterMl.value = 0;
         foods.clear();

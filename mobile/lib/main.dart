@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mobile/data/services/dio_service.dart';
 import 'package:mobile/data/services/storage_service.dart';
-import 'package:intl/date_symbol_data_local.dart'; // Import
+import 'package:intl/date_symbol_data_local.dart';
 import 'app/routes/app_pages.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +24,7 @@ void main() async {
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light, // New Premium Theme
     ),
   );
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../routes/app_routes.dart';
 import '../controllers/home_controller.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -10,24 +11,20 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Light background
       appBar: AppBar(
-        title:
-            const Text('Bugünün Özeti', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('Bugünün Özeti'),
         actions: [
           IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.black),
+              icon: const Icon(Icons.refresh_rounded),
               onPressed: controller.fetchTodayLog)
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Calorie Ring Chart
+            // 1. Calorie Ring Chart (Premium Style)
             _buildCalorieChart(),
 
             const SizedBox(height: 24),
@@ -35,22 +32,16 @@ class HomeView extends GetView<HomeController> {
             // 2. Water Tracking
             _buildWaterTracker(),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 30),
 
-            // 3. Quick Actions or List (Placeholder for next prompt)
             // 3. Quick Actions
-            const Text("Günlük Aktiviteler & Yemekler",
+            const Text("Günlük Hareketler",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
             Obx(() {
               if (controller.foods.isEmpty) {
-                return const Card(
-                    child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: SizedBox(
-                            width: double.infinity,
-                            child: Text("Henüz kayıt yok."))));
+                return _buildEmptyState();
               }
 
               return ListView.builder(
@@ -59,20 +50,24 @@ class HomeView extends GetView<HomeController> {
                 itemCount: controller.foods.length,
                 itemBuilder: (context, index) {
                   final item = controller.foods[index];
-                  // If reversed needed: final item = controller.foods[controller.foods.length - 1 - index];
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.orangeAccent,
-                        child: Icon(Icons.restaurant, color: Colors.white),
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.restaurant_rounded,
+                            color: Colors.orange),
                       ),
                       title: Text(item['isim'] ?? 'Bilinmiyor',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text("${item['miktar'] ?? ''}"),
                       trailing: Text("${item['kalori']} kcal",
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
+                              fontWeight: FontWeight.w800, fontSize: 16)),
                     ),
                   );
                 },
@@ -84,147 +79,286 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildCalorieChart() {
+  Widget _buildEmptyState() {
     return Container(
-      height: 250,
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Stack(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
         children: [
-          Obx(() {
-            final double taken = controller.takenCalories.value.toDouble();
-            final double burned = controller.burnedCalories.value.toDouble();
-            final double goal = controller.calorieGoal.value.toDouble();
-
-            // New Formula: Remaining = (Goal + Burned) - Taken
-            final double netGoal = goal + burned;
-            final double remaining = (netGoal - taken).clamp(0, netGoal);
-
-            return PieChart(
-              PieChartData(
-                sectionsSpace: 0,
-                centerSpaceRadius: 60,
-                startDegreeOffset: 270,
-                sections: [
-                  // Taken Section
-                  PieChartSectionData(
-                    color: Colors.orange,
-                    value: taken,
-                    showTitle: false,
-                    radius: 20,
-                  ),
-                  // Remaining Section (Grey)
-                  PieChartSectionData(
-                    color: Colors.grey[200],
-                    value: remaining,
-                    showTitle: false,
-                    radius: 20,
-                  ),
-                ],
-              ),
-            );
-          }),
-          // Center Text
-          Center(
-            child: Obx(() {
-              final double taken = controller.takenCalories.value.toDouble();
-              final double burned = controller.burnedCalories.value.toDouble();
-              final double goal = controller.calorieGoal.value.toDouble();
-              final double netRemaining = (goal + burned) - taken;
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    netRemaining.toStringAsFixed(0),
-                    style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  const Text("Kalan Kcal",
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  const SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.local_fire_department,
-                          color: Colors.red, size: 14),
-                      Text("${burned.toStringAsFixed(0)} Yakılan",
-                          style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold))
-                    ],
-                  )
-                ],
-              );
-            }),
-          )
+          Icon(Icons.notes_rounded, size: 40, color: Colors.grey[300]),
+          const SizedBox(height: 10),
+          Text("Henüz bir kayıt yok.",
+              style: TextStyle(color: Colors.grey[400])),
         ],
       ),
     );
   }
 
+  Widget _buildCalorieChart() {
+    return Obx(() {
+      final double taken = controller.takenCalories.value.toDouble();
+      final double burned = controller.burnedCalories.value.toDouble();
+      final double goal = controller.calorieGoal.value.toDouble();
+
+      final int carbs = controller.takenCarbs.value;
+      final int carbsGoal = controller.carbsGoal.value;
+      final int protein = controller.takenProtein.value;
+      final int proteinGoal = controller.proteinGoal.value;
+      final int fat = controller.takenFat.value;
+      final int fatGoal = controller.fatGoal.value;
+
+      final double totalBudget = goal + burned;
+      var remaining = (totalBudget - taken);
+      if (remaining < 0) remaining = 0;
+
+      const themeColor = Color(0xFF26C6DA); // Turquoise
+
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 5),
+              )
+            ]),
+        child: Column(
+          children: [
+            // 1. TOP ROW: Eaten - Ring - Burned
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left Column: Alınan (Eaten)
+                _buildInfoColumn(
+                    "Alınan", taken.toStringAsFixed(0), Colors.black87),
+
+                // Center: Main Ring (Remaining)
+                SizedBox(
+                  height: 140,
+                  width: 140,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          startDegreeOffset: 270,
+                          sectionsSpace: 0,
+                          centerSpaceRadius: 55,
+                          sections: [
+                            // Taken Fills the ring
+                            PieChartSectionData(
+                              color: themeColor,
+                              value: taken,
+                              showTitle: false,
+                              radius: 12,
+                            ),
+                            // Remaining is empty
+                            PieChartSectionData(
+                              color: Colors.grey[200],
+                              value: remaining,
+                              showTitle: false,
+                              radius: 12,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            remaining.toStringAsFixed(0),
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF37474F), // Dark Grey
+                              height: 1.0,
+                            ),
+                          ),
+                          const Text("Kalan",
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF9E9E9E), // Light Grey
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+
+                // Right Column: Yakılan (Burned)
+                _buildInfoColumn(
+                    "Yakılan", burned.toStringAsFixed(0), Colors.black87),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // 2. MACROS ROW
+            Row(
+              children: [
+                Expanded(
+                    child: _buildMacroItem(
+                        "Karbonhidrat", carbs, carbsGoal, themeColor)),
+                const SizedBox(width: 20),
+                Expanded(
+                    child: _buildMacroItem(
+                        "Protein", protein, proteinGoal, themeColor)),
+                const SizedBox(width: 20),
+                Expanded(
+                    child: _buildMacroItem("Yağ", fat, fatGoal, themeColor)),
+              ],
+            )
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildInfoColumn(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(height: 4),
+        Text(label,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
+      ],
+    );
+  }
+
+  Widget _buildMacroItem(String label, int value, int goal, Color color) {
+    double progress = (value / (goal == 0 ? 1 : goal)).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF757575))),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 5,
+            backgroundColor: Colors.grey[200],
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text("${value} / ${goal} g",
+            style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF9E9E9E),
+                fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
+
   Widget _buildWaterTracker() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-          color: Colors.blue[50], borderRadius: BorderRadius.circular(16)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            )
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Su Takibi",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue)),
-              Obx(() => Text(
-                  "${controller.waterMl.value} / ${controller.waterGoal.value} ml",
-                  style: const TextStyle(fontWeight: FontWeight.bold))),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Su Tüketimi",
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
+                  Text("Bugünkü Hedef: ${controller.waterGoal.value}ml",
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    color: AppColors.water.withOpacity(0.1),
+                    shape: BoxShape.circle),
+                child: const Icon(Icons.water_drop_rounded,
+                    color: AppColors.water),
+              )
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
+
+          // Progress Bar
           Obx(() {
             final double progress =
                 (controller.waterMl.value / controller.waterGoal.value)
                     .clamp(0.0, 1.0);
-            return LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.white,
-              color: Colors.blue,
-              minHeight: 10,
-              borderRadius: BorderRadius.circular(5),
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: AppColors.water.withOpacity(0.1),
+                color: AppColors.water,
+                minHeight: 12,
+              ),
             );
           }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          Obx(() => Align(
+              alignment: Alignment.centerRight,
+              child: Text("${controller.waterMl.value} ml",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: AppColors.water)))),
+
+          const SizedBox(height: 20),
+
+          // Buttons
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton.icon(
-                onPressed: () => controller.addWater(200),
-                icon: const Icon(Icons.water_drop, size: 16),
-                label: const Text("+200ml"),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => controller.addWater(500),
-                icon: const Icon(Icons.local_drink, size: 16),
-                label: const Text("+500ml"),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
-                    foregroundColor: Colors.white),
-              ),
+              Expanded(child: _buildWaterButton(200)),
+              const SizedBox(width: 15),
+              Expanded(child: _buildWaterButton(500)),
             ],
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildWaterButton(int amount) {
+    return ElevatedButton.icon(
+      onPressed: () => controller.addWater(amount),
+      icon: const Icon(Icons.add_rounded, size: 18),
+      label: Text("+$amount ml"),
+      style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AppColors.background,
+          foregroundColor: AppColors.textPrimary,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
     );
   }
 }

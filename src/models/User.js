@@ -47,6 +47,24 @@ const userSchema = new mongoose.Schema({
             default: 2500 // Project Constitution 5.A -> Default: 2500ml
         }
     },
+    // Kilo Geçmişi (Yeni Özellik)
+    kilo_gecmisi: [{
+        kilo: Number,
+        tarih: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    favoriler: [{
+        isim: String,
+        kalori: Number,
+        makrolar: {
+            protein: Number,
+            karbonhidrat: Number,
+            yag: Number
+        },
+        miktar: String
+    }],
     createdAt: {
         type: Date,
         default: Date.now

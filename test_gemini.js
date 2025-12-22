@@ -1,34 +1,30 @@
+// Native fetch in Node 18+
 require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+async function checkApiKey() {
+    const key = process.env.GEMINI_API_KEY;
+    console.log("Checking API Key directly...");
 
-const candidateModels = [
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-001",
-    "gemini-1.5-flash-002",
-    "gemini-1.5-flash-latest",
-    "gemini-pro-vision"
-];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
 
-async function testModels() {
-    console.log("Testing Gemini Models...");
-    console.log("API KEY Length:", process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : "MISSING");
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-    for (const modelName of candidateModels) {
-        console.log(`\nTesting: ${modelName}`);
-        try {
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent("Hello, are you there?");
-            const response = await result.response;
-            console.log(`✅ SUCCESS: ${modelName} is working!`);
-            console.log("Response:", response.text ? response.text() : "No text");
-            return; // Stop after first success
-        } catch (error) {
-            console.log(`❌ FAILED: ${modelName}`);
-            console.log("Error:", error.message.split('[')[0]); // Print short error
+        if (response.ok) {
+            console.log("SUCCESS! Available Models:");
+            if (data.models) {
+                data.models.forEach(m => console.log(` - ${m.name}`));
+            } else {
+                console.log("No models found in list (Empty array).");
+            }
+        } else {
+            console.error("API Request Failed:", response.status, response.statusText);
+            console.error("Error Body:", JSON.stringify(data, null, 2));
         }
+    } catch (error) {
+        console.error("Network Error:", error.message);
     }
 }
 
-testModels();
+checkApiKey();

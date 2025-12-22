@@ -22,6 +22,7 @@ app.use('/api/logs', require('./src/routes/logRoutes'));
 app.use('/api/health', require('./src/routes/healthRoutes'));
 app.use('/api/water', require('./src/routes/waterRoutes'));
 app.use('/api/activity', require('./src/routes/activityRoutes'));
+app.use('/api/recipes', require('./src/routes/recipeRoutes'));
 
 // Basic Route for Testing
 app.get('/', (req, res) => {

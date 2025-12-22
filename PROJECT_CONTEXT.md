@@ -13,7 +13,7 @@ Markdown
 ## 2. TEKNOLOJİ YIĞINI (TECH STACK)
 *   **Backend:** Node.js, Express.js
 *   **Database:** MongoDB (Mongoose ODM)
-*   **AI:** Google Gemini 2.5 Flash (Google Generative AI SDK)
+*   **AI:** Google Gemini 1.5 Flash (Google Generative AI SDK)
 *   **Mobile:** Flutter (Dart)
 *   **State Management:** GetX (Modular Pattern)
 *   **Paketler (Backend):** `multer` (MemoryStorage), `dotenv`, `cors`, `jsonwebtoken`, `bcryptjs`.

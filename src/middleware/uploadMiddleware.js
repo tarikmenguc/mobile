@@ -9,11 +9,11 @@ const path = require('path');
 
 // Dosya filtresi: Resim dosyaları
 const fileFilter = (req, file, cb) => {
-    // 1. Mime Type Kontrolü
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/heic'];
+    // 1. Mime Type Kontrolü (PDF Eklendi)
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/heic', 'application/pdf'];
 
     // 2. Uzantı Kontrolü (Fallback)
-    const filetypes = /jpeg|jpg|png|webp|heic/;
+    const filetypes = /jpeg|jpg|png|webp|heic|pdf/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedMimes.includes(file.mimetype);
 

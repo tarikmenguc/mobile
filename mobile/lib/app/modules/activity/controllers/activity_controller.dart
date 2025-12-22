@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dio/dio.dart' as dio_pkg;
 import 'package:intl/intl.dart';
+import '../../../routes/app_routes.dart';
+import '../../home/controllers/home_controller.dart';
 
 class ActivityController extends GetxController {
   final dio = dio_pkg.Dio(dio_pkg.BaseOptions(
@@ -35,30 +37,29 @@ class ActivityController extends GetxController {
     try {
       final user = box.read('user');
       final userId = user['_id'];
-      final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final duration = int.parse(durationController.text);
-
-      // Backend Endpoint check: /activity/add
-      // Assumption: Backend logic handles calorie calculation or we send raw.
-      // If backend needs calories, we might need to calc locally.
-      // Prompt says: "Kaydet butonuna basınca ActivityController üzerinden /api/activity/add endpointine isteği at"
-      // Let's send type and duration.
+      final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
       final activityData = {
         'userId': userId,
-        'date': date,
-        'activity': {'type': selectedActivityType.value, 'duration': duration}
+        'activityName': selectedActivityType.value,
+        'duration': duration,
+        'date': todayDate
       };
 
       final response = await dio.post('/activity/add', data: activityData);
 
       if (response.statusCode == 200) {
-        Get.back(); // Close sheet or navigate back?
-        // If opened via Sheet -> Get.back()
-        // If opened via Page -> Get.back()
+        // Refresh Home UI to show new calories
+        try {
+          Get.find<HomeController>().fetchTodayLog();
+        } catch (e) {
+          print("Home Refresh Error: $e");
+        }
+
+        // İŞLEM TAMAMLANDI: Ana İskelete Dön (Bottom Bar)
+        Get.offAllNamed(Routes.ROOT);
         Get.snackbar("Başarılı", "Aktivite eklendi! 💪");
-        // Trigger Home Refresh?
-        // Get.find<HomeController>().fetchTodayLog(); // If Home is alive
       }
     } catch (e) {
       print("ACTIVITY ADD ERROR: $e");

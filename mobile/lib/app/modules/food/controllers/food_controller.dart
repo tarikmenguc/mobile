@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dio_pkg;
@@ -6,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../routes/app_routes.dart';
+import '../../home/controllers/home_controller.dart';
 
 class FoodController extends GetxController {
   final dio = dio_pkg.Dio(dio_pkg.BaseOptions(
@@ -92,7 +94,16 @@ class FoodController extends GetxController {
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         print("ANALYSIS SUCCESS! Mapping data...");
-        analyzedFood.value = response.data['data'];
+
+        // Handle explicit List vs Map (Gemini sometimes wraps result in Array)
+        var responseData = response.data['data'];
+        if (responseData is List) {
+          if (responseData.isNotEmpty) {
+            analyzedFood.value = Map<String, dynamic>.from(responseData.first);
+          }
+        } else {
+          analyzedFood.value = Map<String, dynamic>.from(responseData);
+        }
 
         // Navigate to Confirmation Screen
         Get.toNamed(Routes.AI_ANALYSIS);
@@ -135,11 +146,161 @@ class FoodController extends GetxController {
             data: {'userId': userId, 'date': date, 'food': foodData});
       }
 
-      Get.offAllNamed(Routes.HOME);
+      // İŞLEM TAMAMLANDI: Ana İskelete Dön (Bottom Bar görünsün diye ROOT'a gidiyoruz)
+      Get.offAllNamed(Routes.ROOT);
+      // Get.offAllNamed(Routes.HOME); // HATA: Bu komut alt menüyü yok eder, sadece sayfayı açar.
       Get.snackbar("Başarılı", "${foods.length} besin günlüğe eklendi! 🥗");
     } catch (e) {
       print("CONFIRM ERROR: $e");
       Get.snackbar('Hata', 'Kayıt başarısız: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Search & Favorites
+  final searchTextController = TextEditingController();
+  final searchResults =
+      <dynamic>[].obs; // For Text Search Results (usually 1 item from AI)
+  final favorites = <dynamic>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchFavorites();
+  }
+
+  Future<void> searchFoodText() async {
+    final text = searchTextController.text.trim();
+    if (text.isEmpty) {
+      Get.snackbar("Uyarı", "Lütfen bir yemek yazın.");
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final response = await dio.post('/food/search', data: {'text': text});
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final data = response.data['data'];
+        // AI returns simple JSON: {isim, kalori, makrolar, miktar}
+        // We wrap it in list for UI consistency if needed, or just use it.
+        // Let's assume we show it in a dialog or card to "Add".
+        // For simplicity, we overwrite 'analyzedFood' and go to Confirmation View like Image Analysis.
+        analyzedFood.value = {
+          'yemekler': [data], // Wrap in array
+          'toplam_kalori': data['kalori'] ?? 0 // Explicitly set total calories
+        };
+        Get.toNamed(Routes.AI_ANALYSIS);
+      }
+    } on dio_pkg.DioException catch (e) {
+      print("SEARCH DIO ERROR: ${e.message}");
+      print("STATUS: ${e.response?.statusCode}");
+      print("DATA: ${e.response?.data}");
+
+      if (Get.context != null) {
+        Get.snackbar("Hata",
+            "Arama başarısız: ${e.response?.data['message'] ?? e.message}");
+      }
+    } catch (e) {
+      print("SEARCH ERROR: $e");
+      if (Get.context != null) {
+        Get.snackbar("Hata", "Arama yapılamadı.");
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchFavorites() async {
+    try {
+      final user = box.read('user');
+      if (user == null) return;
+      final userId = user['_id'];
+
+      final response =
+          await dio.get('/food/favorites', queryParameters: {'userId': userId});
+      if (response.statusCode == 200) {
+        favorites.value = response.data;
+      }
+    } catch (e) {
+      print("FETCH FAV ERROR: $e");
+    }
+  }
+
+  Future<void> addToFavorites(Map<String, dynamic> foodItem) async {
+    try {
+      final user = box.read('user');
+      final userId = user['_id'];
+
+      // Sanitize foodItem (remove _id if exists to avoid conflicts, or keep it?)
+      // Backend pushes to array, Mongo auto-generates _id for subdoc.
+      final cleanItem = Map<String, dynamic>.from(foodItem);
+      cleanItem.remove('_id');
+
+      final response = await dio
+          .post('/food/favorites', data: {'userId': userId, 'food': cleanItem});
+
+      if (response.statusCode == 200) {
+        favorites.value = response.data; // Updated list
+        Get.snackbar("Başarılı", "Favorilere eklendi! ❤️");
+      }
+    } on dio_pkg.DioException catch (e) {
+      print("ADD FAV DIO ERROR: ${e.message}");
+      print("STATUS: ${e.response?.statusCode}");
+      print("DATA: ${e.response?.data}");
+      Get.snackbar("Hata", "Favori eklenemedi.");
+    } catch (e) {
+      print("ADD FAV ERROR: $e");
+    }
+  }
+
+  Future<void> removeFromFavorites(String favId) async {
+    try {
+      final user = box.read('user');
+      final userId = user['_id'];
+
+      final response =
+          await dio.delete('/food/favorites/$favId', data: {'userId': userId});
+
+      if (response.statusCode == 200) {
+        favorites.value = response.data; // Updated list
+      }
+    } catch (e) {
+      print("REMOVE FAV ERROR: $e");
+    }
+  }
+
+  Future<void> addFavoriteToLog(Map<String, dynamic> favoriteItem) async {
+    // Directly add a favorite item to daily log
+    isLoading.value = true;
+    try {
+      final user = box.read('user');
+      final userId = user['_id'];
+      final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      final foodData = {
+        'isim': favoriteItem['isim'],
+        'kalori': favoriteItem['kalori'],
+        'makrolar': favoriteItem['makrolar'],
+        'miktar': favoriteItem['miktar'],
+        'kaynak': 'favorite'
+      };
+
+      await dio.post('/food/confirm',
+          data: {'userId': userId, 'date': date, 'food': foodData});
+
+      Get.find<HomeController>().fetchTodayLog(); // Refresh Home
+
+      Get.back(); // Close bottom sheet or dialog
+      Get.snackbar("Afiyet Olsun", "${favoriteItem['isim']} eklendi! 🍎");
+    } on dio_pkg.DioException catch (e) {
+      print("ADD FAV LOG DIO ERROR: ${e.message}");
+      print("STATUS: ${e.response?.statusCode}");
+      print("DATA: ${e.response?.data}");
+      Get.snackbar("Hata", "Eklenemedi: ${e.response?.statusCode}");
+    } catch (e) {
+      print("ADD FAV LOG ERROR: $e");
+      Get.snackbar("Hata", "Eklenemedi.");
     } finally {
       isLoading.value = false;
     }

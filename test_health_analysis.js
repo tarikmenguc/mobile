@@ -1,41 +1,45 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
-const healthService = require('./src/services/healthService');
-const mongoose = require('mongoose');
 
-// Mock User ID (Replace with a real one from your DB if needed, or use a dummy ObjectId)
-const mockUserId = new mongoose.Types.ObjectId();
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Connect to DB (Mock or Real) - We need real connection for 'analyzeAndSaveReport' because it saves to DB
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log(`MongoDB Connected: ${mongoose.connection.host}`);
-    } catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
-    }
-};
-
-const runTest = async () => {
-    await connectDB();
+async function testHealthAnalysis() {
+    console.log("Testing Health Analysis with gemini-2.0-flash-exp...");
 
     try {
-        // Create a dummy mostly empty buffer to simulate a file (Gemini might complain about content, but we test the connection first)
-        // Better: Use a small base64 valid image string converted to buffer
-        const base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="; // 1x1 red pixel
-        const fileBuffer = Buffer.from(base64Image, 'base64');
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+        // Mock Image data (1x1 transparent pixel png)
+        const base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
         const mimeType = "image/png";
 
-        console.log("Starting Analysis...");
-        const result = await healthService.analyzeAndSaveReport(mockUserId, fileBuffer, mimeType);
+        const prompt = `
+          Sen uzman bir doktorsun. Yüklenen kan tahlili veya sağlık raporunu analiz et.
+          Yanıtı sadece JSON döndür.
+        `;
 
-        console.log("Analysis Result:", JSON.stringify(result, null, 2));
+        const imagePart = {
+            inlineData: {
+                data: base64Image,
+                mimeType: mimeType,
+            },
+        };
+
+        console.log("Sending request...");
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        const text = response.text();
+
+        console.log("SUCCESS! Response:");
+        console.log(text);
 
     } catch (error) {
-        console.error("TEST FAILED:", error);
-    } finally {
-        await mongoose.disconnect();
+        console.error("ANALYSIS FAILED:");
+        console.error(error.message);
+        if (error.response) {
+            console.error("FULL ERROR DETAILS:", JSON.stringify(error.response, null, 2));
+        }
     }
-};
+}
 
-runTest();
+testHealthAnalysis();

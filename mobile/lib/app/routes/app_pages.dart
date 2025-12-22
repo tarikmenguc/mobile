@@ -10,6 +10,8 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/food/views/food_entry_view.dart';
 import '../modules/food/views/ai_analysis_view.dart';
 import '../modules/food/bindings/food_binding.dart';
+import '../modules/recipe/views/recipe_input_view.dart';
+import '../modules/recipe/bindings/recipe_binding.dart';
 
 import '../modules/root/views/root_view.dart';
 import '../modules/root/bindings/root_binding.dart';
@@ -79,6 +81,11 @@ class AppPages {
       name: Routes.PROFILE,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.RECIPE,
+      page: () => const RecipeInputView(),
+      binding: RecipeBinding(),
     ),
   ];
 }

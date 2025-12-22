@@ -134,6 +134,14 @@ const updateUserProfile = async (userId, updateData) => {
     const cinsiyet = profil.cinsiyet;
     const aktivite = profil.aktivite_seviyesi;
 
+    // Kilo Değişimi Varsa Geçmişe Ekle
+    if (updateData.kilo && updateData.kilo !== profil.kilo) {
+        user.kilo_gecmisi.push({
+            kilo: updateData.kilo,
+            tarih: new Date()
+        });
+    }
+
     // Profil objesini güncelle
     user.profil = { ...profil.toObject(), ...updateData };
 
@@ -166,6 +174,7 @@ const updateUserProfile = async (userId, updateData) => {
         email: user.email,
         profil: user.profil,
         hedefler: user.hedefler,
+        kilo_gecmisi: user.kilo_gecmisi,
         token: generateToken(user._id)
     };
 };

@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:mobile/data/models/health_report_model.dart';
 import 'package:mobile/data/services/dio_service.dart';
 import 'package:mobile/app/routes/app_routes.dart';
+import 'package:http_parser/http_parser.dart'; // Import added for MediaType
 
 class HealthController extends GetxController {
   final dio = Get.find<DioService>().client;
@@ -61,7 +62,24 @@ class HealthController extends GetxController {
   }
 
   Future<void> uploadAndAnalyze(File file) async {
-    isAnalyzing.value = true;
+    // Show Loading Overlay
+    Get.dialog(
+      const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 16),
+            Text("Yapay Zeka Raporunu İnceliyor...",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    decoration: TextDecoration.none)),
+          ],
+        ),
+      ),
+      barrierDismissible: false,
+    );
 
     try {
       final user = box.read('user');
@@ -69,28 +87,85 @@ class HealthController extends GetxController {
 
       String fileName = file.path.split('/').last;
 
+      // Dynamic ContentType Logic
+      MediaType? mediaType;
+      final ext = fileName.split('.').last.toLowerCase();
+      if (ext == 'pdf') {
+        mediaType = MediaType('application', 'pdf');
+      } else if (['jpg', 'jpeg'].contains(ext)) {
+        mediaType = MediaType('image', 'jpeg');
+      } else if (ext == 'png') {
+        mediaType = MediaType('image', 'png');
+      } else {
+        mediaType =
+            MediaType('application', 'octet-stream'); // Default fallback
+      }
+
       dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
         "userId": userId,
-        "file":
-            await dio_pkg.MultipartFile.fromFile(file.path, filename: fileName),
+        "file": await dio_pkg.MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+          contentType: mediaType,
+        ),
       });
 
+      print("SENDING HEALTH REQUEST (MIME: $mediaType)...");
       final response = await dio.post('/health/analyze', data: formData);
 
+      // Close Loading Dialog
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
       if (response.statusCode == 200) {
-        currentResult.value = HealthReportModel.fromJson(response.data);
+        var responseData = response.data;
+        print("HEALTH RESPONSE TYPE: ${responseData.runtimeType}");
+        print("HEALTH RESPONSE DATA: $responseData");
+
+        // Handle List vs Map
+        if (responseData is List) {
+          print("Response is LIST. Taking first element.");
+          if (responseData.isNotEmpty) {
+            currentResult.value =
+                HealthReportModel.fromJson(responseData.first);
+          }
+        } else if (responseData is Map) {
+          print("Response is MAP. Parsing directly.");
+          currentResult.value = HealthReportModel.fromJson(
+              Map<String, dynamic>.from(responseData));
+        } else {
+          print("UNKNOWN RESPONSE FORMAT");
+        }
+
         fetchHistory(); // Refresh history
 
         // Go to Result Page
         Get.toNamed(Routes.HEALTH_RESULT);
       }
+    } on dio_pkg.DioException catch (e) {
+      // Close Loading Dialog if open
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      print("DIO CRITICAL ERROR: ${e.message}");
+      if (e.response != null) {
+        print("BACKEND ERROR DATA: ${e.response?.data}");
+        print("BACKEND STATUS CODE: ${e.response?.statusCode}");
+      }
+
+      Get.snackbar("Analiz Hatası",
+          "Sunucu tarafında bir sorun oluştu.\nDetay: ${e.response?.data?['message'] ?? e.message}",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5));
     } catch (e) {
-      print("Analysis Error: $e");
-      Get.snackbar("Hata",
-          "Analiz yapılamadı. Bağlantı zaman aşımına uğramış olabilir.\nDetay: ${e.toString().substring(0, e.toString().length > 50 ? 50 : e.toString().length)}...",
-          duration: const Duration(seconds: 5),
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white);
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+      print("UNKNOWN ERROR: $e");
+      Get.snackbar("Hata", "Beklenmeyen bir hata: $e");
     } finally {
       isAnalyzing.value = false;
     }

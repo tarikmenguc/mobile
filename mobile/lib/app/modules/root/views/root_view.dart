@@ -56,7 +56,7 @@ class RootView extends GetView<RootController> {
               Container(
                 color: Colors.white,
                 padding: const EdgeInsets.all(16),
-                height: 200,
+                height: 280,
                 child: Column(
                   children: [
                     const Text("Ekle",
@@ -78,8 +78,17 @@ class RootView extends GetView<RootController> {
                       title: const Text("Aktivite Ekle"),
                       onTap: () {
                         Get.back();
-                        // Get.toNamed(Routes.ACTIVITY_ADD);
-                        Get.snackbar("Yakında", "Aktivite ekleme yakında...");
+                        Get.toNamed(Routes.ACTIVITY_ADD);
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.soup_kitchen, color: Colors.purple),
+                      title: const Text("AI Şef (Tarif Üret)"),
+                      subtitle: const Text("Malzemenize göre tarif"),
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(Routes.RECIPE);
                       },
                     ),
                   ],

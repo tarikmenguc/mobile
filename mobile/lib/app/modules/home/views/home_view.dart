@@ -32,6 +32,11 @@ class HomeView extends GetView<HomeController> {
 
             const SizedBox(height: 24),
 
+            // 1.5 AI Health Tip
+            _buildHealthTip(),
+
+            const SizedBox(height: 24),
+
             // 2. Water Tracking
             _buildWaterTracker(),
 
@@ -99,8 +104,13 @@ class HomeView extends GetView<HomeController> {
         children: [
           Obx(() {
             final double taken = controller.takenCalories.value.toDouble();
+            final double burned = controller.burnedCalories.value.toDouble();
             final double goal = controller.calorieGoal.value.toDouble();
-            final double remaining = (goal - taken).clamp(0, goal);
+
+            // Net Calorie Logic: Remaining = (Goal + Burned) - Taken
+            final double adjustedGoal = goal + burned;
+            final double remaining =
+                (adjustedGoal - taken).clamp(0, adjustedGoal);
 
             return PieChart(
               PieChartData(
@@ -128,23 +138,28 @@ class HomeView extends GetView<HomeController> {
           }),
           // Center Text
           Center(
-            child: Obx(() => Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      (controller.calorieGoal.value -
-                              controller.takenCalories.value)
-                          .toString(),
-                      style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
-                    ),
-                    const Text("Kalan Kcal",
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                )),
-          )
+            child: Obx(() {
+              final double taken = controller.takenCalories.value.toDouble();
+              final double burned = controller.burnedCalories.value.toDouble();
+              final double goal = controller.calorieGoal.value.toDouble();
+              final double netRemaining = (goal + burned) - taken;
+
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    netRemaining.toStringAsFixed(0),
+                    style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  const Text("Kalan Kcal",
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ],
+              );
+            }),
+          ),
         ],
       ),
     );
@@ -209,5 +224,39 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
     );
+  }
+
+  Widget _buildHealthTip() {
+    return Obx(() {
+      if (controller.healthTip.value.isEmpty) return const SizedBox.shrink();
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.teal[50], // Light teal for health/freshness
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.teal.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.auto_awesome, color: Colors.teal),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("AI Sağlık İpucu",
+                      style: TextStyle(
+                          color: Colors.teal, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(controller.healthTip.value,
+                      style:
+                          const TextStyle(fontSize: 14, color: Colors.black87)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

@@ -73,16 +73,26 @@ class AiAnalysisView extends GetView<FoodController> {
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(
                         "${item['miktar'] ?? ''} • ${item['kalori']} kcal"),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text("P: ${item['makrolar']['protein']}g",
-                            style: const TextStyle(fontSize: 12)),
-                        Text("K: ${item['makrolar']['karbonhidrat']}g",
-                            style: const TextStyle(fontSize: 12)),
-                        Text("Y: ${item['makrolar']['yag']}g",
-                            style: const TextStyle(fontSize: 12)),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text("P: ${item['makrolar']['protein']}g",
+                                style: const TextStyle(fontSize: 12)),
+                            Text("K: ${item['makrolar']['karbonhidrat']}g",
+                                style: const TextStyle(fontSize: 12)),
+                            Text("Y: ${item['makrolar']['yag']}g",
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.favorite_border,
+                              color: Colors.red),
+                          onPressed: () => controller.addToFavorites(item),
+                        )
                       ],
                     ),
                   ),

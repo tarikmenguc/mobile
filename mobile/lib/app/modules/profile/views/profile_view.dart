@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -67,6 +68,28 @@ class ProfileView extends GetView<ProfileController> {
 
               const SizedBox(height: 30),
 
+              // Kilo Geçmişi Grafiği
+              if (userData['kilo_gecmisi'] != null &&
+                  (userData['kilo_gecmisi'] as List).isNotEmpty) ...[
+                const Text("Kilo Değişimi",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                AspectRatio(
+                  aspectRatio: 1.7,
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: _buildWeightChart(userData['kilo_gecmisi']),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+              ],
+
               // Actions
               ElevatedButton.icon(
                 onPressed: controller.showUpdateWeightDialog,
@@ -93,6 +116,54 @@ class ProfileView extends GetView<ProfileController> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildWeightChart(List<dynamic> history) {
+    // Sort by date just in case
+    history.sort((a, b) =>
+        DateTime.parse(a['tarih']).compareTo(DateTime.parse(b['tarih'])));
+
+    // Take last 7 entries or all if less
+    // final recentHistory = history.length > 7 ? history.sublist(history.length - 7) : history;
+    final recentHistory = history;
+
+    List<FlSpot> spots = [];
+    for (int i = 0; i < recentHistory.length; i++) {
+      spots.add(
+          FlSpot(i.toDouble(), (recentHistory[i]['kilo'] as num).toDouble()));
+    }
+
+    return LineChart(
+      LineChartData(
+        gridData: const FlGridData(show: true),
+        titlesData: const FlTitlesData(
+          leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40)),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(
+            show: true,
+            border: Border.all(color: Colors.grey.withOpacity(0.2))),
+        minX: 0,
+        maxX: (recentHistory.length - 1).toDouble(),
+        minY: spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 5,
+        maxY: spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 5,
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: Colors.teal,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: true),
+            belowBarData:
+                BarAreaData(show: true, color: Colors.teal.withOpacity(0.1)),
+          ),
+        ],
+      ),
     );
   }
 

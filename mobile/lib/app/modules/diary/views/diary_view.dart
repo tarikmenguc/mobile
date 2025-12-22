@@ -74,7 +74,8 @@ class DiaryView extends GetView<DiaryController> {
                             padding: const EdgeInsets.all(16),
                             itemCount: log.yemekler.length,
                             itemBuilder: (context, index) {
-                              final item = log.yemekler[index];
+                              final item =
+                                  log.yemekler.reversed.toList()[index];
                               return Card(
                                 child: ListTile(
                                   leading: const Icon(Icons.fastfood,
@@ -94,14 +95,15 @@ class DiaryView extends GetView<DiaryController> {
                             padding: const EdgeInsets.all(16),
                             itemCount: log.aktiviteler.length,
                             itemBuilder: (context, index) {
-                              final item = log.aktiviteler[index];
+                              final item =
+                                  log.aktiviteler.reversed.toList()[index];
                               return Card(
                                 child: ListTile(
                                   leading: const Icon(Icons.fitness_center,
                                       color: Colors.blue),
-                                  title: Text(item['type'] ?? 'Bilinmiyor'),
+                                  title: Text(item['isim'] ?? 'Bilinmiyor'),
                                   subtitle: Text(
-                                      "${item['duration']} dakika"), // Backend might not have calories yet
+                                      "${item['sure_dk']} dakika • ${item['yakilan_kalori']} kcal"),
                                 ),
                               );
                             },

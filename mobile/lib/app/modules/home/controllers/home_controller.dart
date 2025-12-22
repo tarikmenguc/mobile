@@ -16,6 +16,7 @@ class HomeController extends GetxController {
   final burnedCalories = 0.obs;
   final waterMl = 0.obs;
   final foods = <dynamic>[].obs; // List of foods
+  final healthTip = "".obs;
 
   // Goals (defaults, should come from User Profile)
   final calorieGoal = 2000.obs;
@@ -31,14 +32,33 @@ class HomeController extends GetxController {
       waterGoal.value = user['hedefler']['su_hedefi_ml'] ?? 2500;
     }
     fetchTodayLog();
+    fetchHealthTip();
   }
 
   String get todayDate => DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+  Future<void> fetchHealthTip() async {
+    try {
+      final user = box.read('user');
+      if (user == null) return;
+      final userId = user['_id'];
+
+      final response =
+          await dio.get('/health/tip', queryParameters: {'userId': userId});
+
+      if (response.statusCode == 200 && response.data != null) {
+        healthTip.value = response.data['tip'] ?? "";
+      }
+    } catch (e) {
+      print("Error fetching health tip: $e");
+    }
+  }
 
   Future<void> fetchTodayLog() async {
     isLoading.value = true;
     try {
       final user = box.read('user');
+      if (user == null) return;
       final userId = user['_id'];
 
       // Backend expects userId in query for GET logs/date if not using full auth middleware yet

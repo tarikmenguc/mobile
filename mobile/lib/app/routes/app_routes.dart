@@ -10,4 +10,5 @@ class Routes {
   static const ACTIVITY_ADD = '/activity-add';
   static const HEALTH_RESULT = '/health-result';
   static const PROFILE = '/profile';
+  static const RECIPE = '/recipe';
 }

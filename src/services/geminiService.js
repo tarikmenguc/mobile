@@ -11,56 +11,123 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 const analyzeImage = async (imageBuffer, mimeType) => {
   try {
-    // Modeli seç (Available: gemini-2.5-flash)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // 1. Model Seçimi (gemini-2.5-flash-lite)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    // Prompt Hazırlığı: Kesinlikle JSON formatında yanıt istiyoruz.
+    // 2. Basit ve Net Prompt
     const prompt = `
-      Sen uzman bir diyetisyensin. Sana gönderilen yemek fotoğrafını analiz et.
-      Şu formatta SADECE JSON verisi döndür, başka hiçbir metin ekleme:
+      You are a specialized nutritionist AI.
+      Analyze this food image and return ONLY a JSON response in the following format:
       {
         "yemekler": [
           {
-            "isim": "Yemeğin Türkçe Adı",
-            "kalori": 100 (tahmini kalori, sayı),
+            "isim": "Yemek İsmi",
+            "kalori": 100,
             "makrolar": {
-              "protein": 10 (gr),
-              "karbonhidrat": 20 (gr),
-              "yag": 5 (gr)
+              "protein": 10,
+              "karbonhidrat": 20,
+              "yag": 5
             },
             "miktar": "1 Porsiyon"
           }
         ],
         "toplam_kalori": 100
       }
-      Eğer resimde yemek yoksa boş bir dizi dönebilirsin.
+      Do not add any markdown formatting or extra text.
     `;
 
-    // Buffer verisini Google'ın istediği formata çevir
+    // 3. Veri Paketi
     const imagePart = {
       inlineData: {
         data: imageBuffer.toString("base64"),
-        mimeType: mimeType,
+        mimeType: mimeType || "image/jpeg"
       },
     };
 
-    // İsteği gönder
+    // 4. İstek Gönderimi
     const result = await model.generateContent([prompt, imagePart]);
     const response = await result.response;
     const text = response.text();
 
-    // Markdown temizliği (Bazen ```json ... ``` bloğu içinde gelebilir)
-    const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    console.log("GEMINI_RAW_RESPONSE:", text);
 
-    return JSON.parse(cleanedText);
+    // 5. JSON Temizliği (Markdown bloğu varsa kaldır)
+    const cleanJson = text.replace(/```json|```/g, "").trim();
+
+    return JSON.parse(cleanJson);
 
   } catch (error) {
-    console.error("Gemini AI Hatası:", error);
-    // Gerçek hatayı fırlat ki frontend ne olduğunu anlasın (API Key, Quota, vs.)
-    throw new Error(error.message || 'Bilinmeyen AI Hatası');
+    console.error("GEMINI_HATASI:", error.message);
+    if (error.response) {
+      console.error("GEMINI_API_DETAY:", JSON.stringify(error.response, null, 2));
+    }
+    throw new Error("Yemek analizi başarısız oldu: " + error.message);
+  }
+};
+
+/**
+ * @desc    Metin tabanlı yemek analizi yapar.
+ * @param   {String} text - Kullanıcının girdiği yemek tanımı (Örn: "1 kase mercimek çorbası")
+ * @returns {Object} - Analiz edilen yemek verisi
+ */
+const analyzeText = async (text) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const prompt = `
+          You are a specialized nutritionist AI.
+          Analyze the following food description: "${text}".
+          Return ONLY a JSON response in the following format:
+          {
+            "isim": "Food Name",
+            "kalori": 100,
+            "makrolar": {
+              "protein": 10,
+              "karbonhidrat": 20,
+              "yag": 5
+            },
+            "miktar": "1 Portion"
+          }
+          Do not add any markdown formatting or extra text.
+        `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const responseText = response.text();
+
+    console.log("GEMINI_TEXT_RAW:", responseText);
+
+    const cleanJson = responseText.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("GEMINI_TEXT_ERROR:", error.message);
+    throw new Error("Metin analizi başarısız: " + error.message);
+  }
+};
+
+/**
+ * @desc    Özel prompt ile tarif üretir.
+ * @param   {String} prompt - Hazırlanan detaylı prompt
+ * @returns {Object} - Tarif JSON verisi
+ */
+const generateRecipe = async (prompt) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log("GEMINI_RECIPE_RAW:", text);
+
+    const cleanJson = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("GEMINI_RECIPE_ERROR:", error.message);
+    throw new Error("Tarif üretilemedi: " + error.message);
   }
 };
 
 module.exports = {
-  analyzeImage
+  analyzeImage,
+  analyzeText,
+  generateRecipe
 };

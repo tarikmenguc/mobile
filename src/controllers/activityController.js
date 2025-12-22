@@ -1,33 +1,26 @@
-const DailyLog = require('../models/DailyLog');
+const activityService = require('../services/activityService');
+const responseHelper = require('../utils/responseHelper');
 
 /**
- * @desc    Aktivite ekler.
+ * @desc    Yeni aktivite ekler.
  * @route   POST /api/activity/add
  * @access  Private
  */
 const addActivity = async (req, res) => {
     try {
-        const { userId, date, activity } = req.body;
-        // activity: { isim, sure_dk, yakilan_kalori }
+        const { userId, activityName, duration, date } = req.body;
 
-        if (!userId || !date || !activity) {
-            return res.status(400).json({ message: 'Eksik veri.' });
+        if (!userId || !activityName || !duration) {
+            return responseHelper.error(res, 'Eksik parametreler.', 400);
         }
 
-        const updatedLog = await DailyLog.findOneAndUpdate(
-            { user_id: userId, tarih: date },
-            {
-                $push: { aktiviteler: activity },
-                $inc: { toplam_yakilan_kalori: activity.yakilan_kalori }
-            },
-            { new: true, upsert: true }
-        );
+        const result = await activityService.addActivity(userId, activityName, duration, date);
 
-        res.status(200).json(updatedLog);
+        return responseHelper.success(res, result, 'Aktivite başarıyla eklendi.');
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Aktivite eklenemedi.' });
+        console.error("Add Activity Controller Error:", error);
+        return responseHelper.error(res, 'Aktivite eklenirken sunucu hatası.', 500);
     }
 };
 

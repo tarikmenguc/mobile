@@ -48,11 +48,7 @@ const analyzeFood = async (req, res) => {
 };
 
 const logService = require('../services/logService');
-
-// ... (mevcut analyzeFood kodu) ...
-// Not: Mevcut kodun silinmemesi için analyzeFood fonksiyonunu tekrar tanımlamıyoruz, sadece ekliyoruz ama replace tool ile tüm dosyayı yönetmek daha güvenli olabilir 
-// veya sadece export kısmını ve altına eklemeyi yapabiliriz. 
-// Burada sadece ekleme yapacağım.
+const User = require('../models/User'); // User modelini ekle
 
 /**
  * @desc    Kullanıcı tarafından onaylanan yemeği kaydeder.
@@ -61,26 +57,101 @@ const logService = require('../services/logService');
  */
 const confirmFood = async (req, res) => {
     try {
-        // req.user, authMiddleware'den gelecek (henüz aktif değilse body'den user_id alabiliriz test için, ama doğrusu authMiddleware)
-        // Şimdilik test kolaylığı için body'den userId alalım, gerçekte req.user.id olmalı
         const { userId, date, food } = req.body;
-
-        // Basit Validasyon
         if (!userId || !date || !food) {
-            return res.status(400).json({ message: 'Eksik veri: userId, date ve food gereklidir.' });
+            return res.status(400).json({ message: 'Eksik veri.' });
         }
-
         const updatedLog = await logService.addFoodToLog(userId, date, food);
-
         res.status(200).json(updatedLog);
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Yemek kaydedilemedi.' });
     }
 };
 
+/**
+ * @desc    Metin tabanlı yemek araması yapar (Gemini AI).
+ * @route   POST /api/food/search
+ * @access  Private
+ */
+const searchFood = async (req, res) => {
+    try {
+        const { text } = req.body;
+        if (!text) return res.status(400).json({ message: 'Arama metni gereklidir.' });
+
+        const result = await geminiService.analyzeText(text);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        console.error("SEARCH ERROR:", error);
+        res.status(500).json({ message: 'Arama yapılamadı.', error: error.message });
+    }
+};
+
+/**
+ * @desc    Favorilere yemek ekler.
+ * @route   POST /api/food/favorites
+ */
+const addFavorite = async (req, res) => {
+    try {
+        const { userId, food } = req.body;
+        if (!userId || !food) return res.status(400).json({ message: 'Eksik veri.' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+
+        user.favoriler.push(food);
+        await user.save();
+
+        res.status(200).json(user.favoriler);
+    } catch (error) {
+        res.status(500).json({ message: 'Favori eklenemedi.' });
+    }
+};
+
+/**
+ * @desc    Favorilerden yemek siler.
+ * @route   DELETE /api/food/favorites/:id
+ */
+const removeFavorite = async (req, res) => {
+    try {
+        const { userId } = req.body; // Body'den alıyoruz (GET/DELETE fark etmeksizin)
+        const favoriteId = req.params.id;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+
+        user.favoriler = user.favoriler.filter(fav => fav._id.toString() !== favoriteId);
+        await user.save();
+
+        res.status(200).json(user.favoriler);
+    } catch (error) {
+        res.status(500).json({ message: 'Favori silinemedi.' });
+    }
+};
+
+/**
+ * @desc    Favorileri listeler.
+ * @route   GET /api/food/favorites
+ */
+const getFavorites = async (req, res) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ message: 'User ID gerekli.' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+
+        res.status(200).json(user.favoriler);
+    } catch (error) {
+        res.status(500).json({ message: 'Favoriler alınamadı.' });
+    }
+};
+
 module.exports = {
     analyzeFood,
-    confirmFood
+    confirmFood,
+    searchFood,
+    addFavorite,
+    removeFavorite,
+    getFavorites
 };

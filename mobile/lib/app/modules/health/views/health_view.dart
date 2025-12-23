@@ -9,7 +9,16 @@ class HealthView extends GetView<HealthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sağlık & Tahlil Analizi")),
+      appBar: AppBar(
+        title: const Text("Sağlık & Tahlil Analizi"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_a_photo),
+            onPressed: controller.pickAndAnalyze,
+            tooltip: "Yeni Tahlil Ekle",
+          )
+        ],
+      ),
       body: Stack(
         children: [
           // Main Content
@@ -86,14 +95,7 @@ class HealthView extends GetView<HealthController> {
               : const SizedBox.shrink()),
         ],
       ),
-      floatingActionButton: Obx(() => controller.isAnalyzing.value
-          ? const SizedBox.shrink()
-          : FloatingActionButton.extended(
-              onPressed: controller.pickAndAnalyze,
-              label: const Text("Analiz Et"),
-              icon: const Icon(Icons.auto_awesome),
-              backgroundColor: Colors.teal,
-            )),
+      floatingActionButton: null,
     );
   }
 }

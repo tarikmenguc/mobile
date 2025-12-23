@@ -178,25 +178,30 @@ class FoodController extends GetxController {
     }
 
     isLoading.value = true;
+    searchResults.clear(); // Clear previous
     try {
       final response = await dio.post('/food/search', data: {'text': text});
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'];
-        // AI returns simple JSON: {isim, kalori, makrolar, miktar}
-        // We wrap it in list for UI consistency if needed, or just use it.
-        // Let's assume we show it in a dialog or card to "Add".
-        // For simplicity, we overwrite 'analyzedFood' and go to Confirmation View like Image Analysis.
-        analyzedFood.value = {
-          'yemekler': [data], // Wrap in array
-          'toplam_kalori': data['kalori'] ?? 0 // Explicitly set total calories
-        };
-        Get.toNamed(Routes.AI_ANALYSIS);
+
+        // Handle { items: [...] } structure
+        if (data is Map && data.containsKey('items')) {
+          final list = List<dynamic>.from(data['items']);
+          searchResults.value = list;
+        } else if (data is List) {
+          searchResults.value = data;
+        } else {
+          // Fallback for single item
+          searchResults.value = [data];
+        }
+
+        // Do NOT navigate away. UI will show the list.
+        if (searchResults.isEmpty) {
+          Get.snackbar("Bilgi", "Sonuç bulunamadı.");
+        }
       }
     } on dio_pkg.DioException catch (e) {
       print("SEARCH DIO ERROR: ${e.message}");
-      print("STATUS: ${e.response?.statusCode}");
-      print("DATA: ${e.response?.data}");
-
       if (Get.context != null) {
         Get.snackbar("Hata",
             "Arama başarısız: ${e.response?.data['message'] ?? e.message}");

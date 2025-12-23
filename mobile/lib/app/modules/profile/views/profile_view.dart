@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../controllers/profile_controller.dart';
+import 'package:mobile/app/theme/app_colors.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class ProfileView extends GetView<ProfileController> {
             children: [
               const CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.teal,
+                backgroundColor: AppColors.primary,
                 child: Icon(Icons.person, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 16),
@@ -155,12 +156,12 @@ class ProfileView extends GetView<ProfileController> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: Colors.teal,
+            color: AppColors.primary,
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),
-            belowBarData:
-                BarAreaData(show: true, color: Colors.teal.withOpacity(0.1)),
+            belowBarData: BarAreaData(
+                show: true, color: AppColors.primary.withOpacity(0.1)),
           ),
         ],
       ),
@@ -172,7 +173,7 @@ class ProfileView extends GetView<ProfileController> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.teal, size: 20),
+          Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(width: 10),
           Text(label,
               style:

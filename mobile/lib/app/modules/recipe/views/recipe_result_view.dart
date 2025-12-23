@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/recipe_controller.dart';
+import 'package:mobile/app/theme/app_colors.dart';
 
 class RecipeResultView extends GetView<RecipeController> {
   const RecipeResultView({Key? key}) : super(key: key);
@@ -10,39 +11,57 @@ class RecipeResultView extends GetView<RecipeController> {
     final recipe = controller.generatedRecipe;
 
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Card
+          // 1. Header Card (Image Placeholder + Title + Stats)
           Card(
             elevation: 4,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            color: Colors.orange.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              color: Colors.white,
               child: Column(
                 children: [
-                  Text(recipe['tarif_adi'] ?? 'İsimsiz Tarif',
-                      style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.timer, size: 20, color: Colors.grey),
-                      const SizedBox(width: 5),
-                      Text(recipe['hazirlanis_suresi'] ?? '? dk'),
-                      const SizedBox(width: 20),
-                      const Icon(Icons.local_fire_department,
-                          size: 20, color: Colors.orange),
-                      const SizedBox(width: 5),
-                      Text("${recipe['kalori']} kcal",
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
+                  // Decorative Header Area
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    color: Colors.orange.shade100,
+                    child: const Icon(Icons.restaurant_menu,
+                        size: 50, color: Colors.orange),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        Text(recipe['tarif_adi'] ?? 'İsimsiz Tarif',
+                            style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                            textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        // Stats Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildStatItem(
+                                Icons.timer,
+                                recipe['hazirlanis_suresi'] ?? '? dk',
+                                Colors.blue),
+                            Container(
+                                width: 1,
+                                height: 30,
+                                color: Colors.grey.shade300),
+                            _buildStatItem(Icons.local_fire_department,
+                                "${recipe['kalori']} kcal", Colors.orange),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -51,51 +70,103 @@ class RecipeResultView extends GetView<RecipeController> {
 
           const SizedBox(height: 20),
 
-          // Macros
+          // 2. Macros Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildMacroInfo(
-                  "Protein", recipe['makrolar']['protein'], Colors.blue),
-              _buildMacroInfo(
-                  "Karb", recipe['makrolar']['karbonhidrat'], Colors.green),
-              _buildMacroInfo("Yağ", recipe['makrolar']['yag'], Colors.red),
+              _buildMacroCard(
+                  "Protein", "${recipe['makrolar']['protein']}g", Colors.blue),
+              const SizedBox(width: 10),
+              _buildMacroCard("Karb", "${recipe['makrolar']['karbonhidrat']}g",
+                  Colors.green),
+              const SizedBox(width: 10),
+              _buildMacroCard(
+                  "Yağ", "${recipe['makrolar']['yag']}g", Colors.red),
             ],
           ),
 
-          const SizedBox(height: 20),
-          const Divider(),
+          const SizedBox(height: 24),
 
-          // Ingredients
+          // 3. Ingredients Section
           const Text("Malzemeler",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87)),
           const SizedBox(height: 10),
-          ...List<Widget>.from(
-              (recipe['malzemeler'] as List).map((e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(children: [
-                      const Icon(Icons.check_circle_outline,
-                          size: 16, color: Colors.green),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(e))
-                    ]),
-                  ))),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: (recipe['malzemeler'] as List)
+                .map((e) => Chip(
+                      label: Text(e.toString(),
+                          style: const TextStyle(color: Colors.black87)),
+                      backgroundColor: Colors.white,
+                      elevation: 1,
+                      avatar: const CircleAvatar(
+                          backgroundColor: Colors.green,
+                          child:
+                              Icon(Icons.check, size: 12, color: Colors.white)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.grey.shade200)),
+                    ))
+                .toList(),
+          ),
 
-          const SizedBox(height: 20),
-          const Divider(),
+          const SizedBox(height: 24),
 
-          // Steps
-          const Text("Hazırlanış",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          // 4. Instructions Section
+          const Text("Hazırlanış Adımları",
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87)),
           const SizedBox(height: 10),
-          ...List<Widget>.from((recipe['adimlar'] as List).map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(e, style: const TextStyle(height: 1.5)),
-              ))),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: (recipe['adimlar'] as List).length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final step = recipe['adimlar'][index];
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2))
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: AppColors.primary,
+                      child: Text("${index + 1}",
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(step,
+                            style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.5,
+                                color: Colors.black87))),
+                  ],
+                ),
+              );
+            },
+          ),
 
           const SizedBox(height: 30),
 
-          // Add Button
+          // 5. Add Button
           ElevatedButton.icon(
             onPressed: controller.addRecipeToLog,
             icon: const Icon(Icons.add_circle, color: Colors.white),
@@ -103,30 +174,62 @@ class RecipeResultView extends GetView<RecipeController> {
                 style: TextStyle(color: Colors.white, fontSize: 16)),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 4,
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+
           TextButton(
             onPressed: () {
-              controller.generatedRecipe.clear(); // Reset to go back to input
+              controller.generatedRecipe.clear();
               controller.ingredientsController.clear();
             },
-            child: const Text("Yeni Tarif Oluştur"),
+            child: const Text("Yeni Tarif Oluştur",
+                style: TextStyle(color: Colors.grey)),
           )
         ],
       ),
     );
   }
 
-  Widget _buildMacroInfo(String label, dynamic val, Color color) {
-    return Column(
+  Widget _buildStatItem(IconData icon, String text, Color color) {
+    return Row(
       children: [
-        Text(label,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-        Text("${val}g", style: const TextStyle(fontSize: 16)),
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(text,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800)),
       ],
+    );
+  }
+
+  Widget _buildMacroCard(String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Text(value,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+            const SizedBox(height: 4),
+            Text(label,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -25,6 +25,7 @@ dependencies:
   fl_chart: ^0.66.0
   mobile_scanner: ^6.0.0 
   permission_handler: ^11.3.0
+  google_fonts: ^6.3.3
 
 dev_dependencies:
   flutter_test:

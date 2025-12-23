@@ -46,8 +46,26 @@ const getLog = async (userId, dateString) => {
     return await DailyLog.findOne({ user_id: userId, tarih: dateString });
 };
 
+/**
+ * @desc    Son X günün verilerini getirir (Haftalık Özet için)
+ */
+const getWeeklyLog = async (userId, days = 7) => {
+    // MongoDB aggregation ile daha şık olur ama basitçe find ile yapalım.
+    // Tarih string olduğu için string karşılaştırması "YYYY-MM-DD" formatında çalışır.
+
+    // Basit bir yaklaşım: Son 7 günün tarihlerini oluşturup $in ile çekmek veya string range kullanmak.
+    // Tarih "YYYY-MM-DD" standardındaysa string sort çalışır.
+
+    const logs = await DailyLog.find({ user_id: userId })
+        .sort({ tarih: -1 }) // En yeni en üstte
+        .limit(days);
+
+    return logs;
+};
+
 module.exports = {
     getOrCreateLog,
     addFoodToLog,
-    getLog
+    getLog,
+    getWeeklyLog
 };

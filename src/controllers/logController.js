@@ -34,6 +34,29 @@ const getDailyLog = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Geçmiş logları getirir (Son 7 gün vs)
+ * @route   GET /api/logs/history
+ * @access  Private
+ */
+const getHistory = async (req, res) => {
+    try {
+        const userId = req.query.userId;
+        const days = parseInt(req.query.days) || 7;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID gereklidir.' });
+        }
+
+        const logs = await logService.getWeeklyLog(userId, days);
+        res.status(200).json(logs);
+    } catch (error) {
+        console.error("History Error:", error);
+        res.status(500).json({ message: 'Geçmiş verisi alınamadı.' });
+    }
+};
+
 module.exports = {
-    getDailyLog
+    getDailyLog,
+    getHistory
 };

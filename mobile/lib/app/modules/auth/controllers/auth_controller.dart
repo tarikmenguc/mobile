@@ -67,7 +67,7 @@ class AuthController extends GetxController {
         await box.write('token', token);
         await box.write('user', user);
 
-        Get.offAllNamed(Routes.HOME); // TODO: Create Home View
+        Get.offAllNamed(Routes.ROOT); // Navigate to Root to show BottomBar
         Get.snackbar('Başarılı', 'Giriş yapıldı');
         print('TOKEN: $token');
       }
@@ -116,7 +116,7 @@ class AuthController extends GetxController {
         await box.write('token', token);
         await box.write('user', user);
 
-        Get.offAllNamed(Routes.HOME);
+        Get.offAllNamed(Routes.ROOT);
         Get.snackbar('Tebrikler', 'Hesabınız oluşturuldu!');
       }
     } on DioException catch (e) {

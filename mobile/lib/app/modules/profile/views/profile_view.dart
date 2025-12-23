@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../controllers/profile_controller.dart';
 import 'package:mobile/app/theme/app_colors.dart';
+import 'package:get_storage/get_storage.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({Key? key}) : super(key: key);
@@ -115,7 +116,8 @@ class ProfileView extends GetView<ProfileController> {
                         horizontal: 30, vertical: 15),
                     side: const BorderSide(color: Colors.red),
                     minimumSize: const Size(double.infinity, 50)),
-              )
+              ),
+              const SizedBox(height: 30),
             ],
           ),
         );

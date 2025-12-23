@@ -1,9 +1,11 @@
 class Routes {
   Routes._();
-  static const HOME = '/home';
+  static const INITIAL = '/';
+  static const WELCOME = '/welcome'; // New Onboarding
+  static const ONBOARDING = '/onboarding'; // Auth Profile Setup
   static const LOGIN = '/login';
   static const REGISTER = '/register';
-  static const ONBOARDING = '/onboarding';
+  static const HOME = '/home';
   static const FOOD_ENTRY = '/food-entry';
   static const AI_ANALYSIS = '/ai-analysis';
   static const ROOT = '/root';

@@ -84,6 +84,10 @@ class AuthController extends GetxController {
 
   // Called from RegisterView -> Moves to Onboarding
   void startRegistration(String name, String email, String password) {
+    if (!GetUtils.isEmail(email)) {
+      Get.snackbar('Hata', 'Lütfen geçerli bir e-posta adresi giriniz.');
+      return;
+    }
     tempRegisterData['ad_soyad'] = name;
     tempRegisterData['email'] = email;
     tempRegisterData['password'] = password;
@@ -105,10 +109,7 @@ class AuthController extends GetxController {
         'cinsiyet': _mapGenderToBackend(gender.value),
         'aktivite_seviyesi': _mapActivityToBackend(activityLevel.value),
       };
-      print("DATA PREPARED: $fullData");
-
       final response = await dio.post('/auth/register', data: fullData);
-      print("RESPONSE: ${response.statusCode} - ${response.data}");
 
       if (response.statusCode == 201) {
         final token = response.data['token'];

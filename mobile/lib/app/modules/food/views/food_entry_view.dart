@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../controllers/food_controller.dart';
 import 'package:mobile/app/theme/app_colors.dart';
 import 'package:mobile/app/theme/app_theme.dart';
+import 'manual_add_view.dart';
 
 class FoodEntryView extends GetView<FoodController> {
   const FoodEntryView({Key? key}) : super(key: key);
@@ -87,17 +88,34 @@ class FoodEntryView extends GetView<FoodController> {
       child: Column(
         children: [
           // Arama Alanı
-          TextField(
-            controller: controller.searchTextController,
-            decoration: InputDecoration(
-              hintText: "Örn: 1 kase mercimek çorbası",
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: controller.searchFoodText,
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller.searchTextController,
+                  decoration: InputDecoration(
+                    hintText: "Örn: 1 kase mercimek çorbası",
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: controller.searchFoodText,
+                    ),
+                    // filled & border handled by AppTheme
+                  ),
+                  onSubmitted: (_) => controller.searchFoodText(),
+                ),
               ),
-              // filled & border handled by AppTheme
-            ),
-            onSubmitted: (_) => controller.searchFoodText(),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () => Get.to(() => const ManualAddView()),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12))),
+                child: const Icon(Icons.edit_note, color: Colors.white),
+              )
+            ],
           ),
           const SizedBox(height: 20),
 

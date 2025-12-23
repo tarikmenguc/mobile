@@ -58,10 +58,13 @@ class ProfileView extends GetView<ProfileController> {
                           "${profil['kilo'] ?? '-'} kg"),
                       const Divider(),
                       _buildInfoRow(Icons.local_fire_department, "Günlük Hedef",
-                          "${hedefler['gunluk_kalori'] ?? '-'} kcal"),
+                          "${hedefler['gunluk_kalori'] ?? '-'} kcal",
+                          onTap: () =>
+                              controller.showEditGoalDialog('calorie')),
                       const Divider(),
                       _buildInfoRow(Icons.local_drink, "Su Hedefi",
-                          "${hedefler['su_hedefi_ml'] ?? '-'} ml"),
+                          "${hedefler['su_hedefi_ml'] ?? '-'} ml",
+                          onTap: () => controller.showEditGoalDialog('water')),
                     ],
                   ),
                 ),
@@ -168,21 +171,31 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 20),
-          const SizedBox(width: 10),
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Text(value,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        ],
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 10),
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Spacer(),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87)),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.edit, size: 16, color: Colors.grey)
+            ]
+          ],
+        ),
       ),
     );
   }

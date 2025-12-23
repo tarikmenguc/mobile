@@ -122,6 +122,36 @@ class FoodController extends GetxController {
     }
   }
 
+  Future<void> addManualFood(Map<String, dynamic> foodData) async {
+    isLoading.value = true;
+    try {
+      final user = box.read('user');
+      if (user == null) return;
+      final userId = user['_id'];
+      final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      // Using /food/confirm for now as /food/add in backend is just an alias or handled same way
+      // Wait, I mapped /food/add to foodController.confirmFood in routes.
+      // So I can use /food/add or /food/confirm. Let's use /food/add to be explicit.
+
+      // ConfirmFood controller expects: { userId, date, food }
+      final response = await dio.post('/food/add',
+          data: {"userId": userId, "date": formattedDate, "food": foodData});
+
+      if (response.statusCode == 200) {
+        Get.snackbar("Başarılı", "Yemek başarıyla eklendi.",
+            backgroundColor: Colors.green, colorText: Colors.white);
+        Get.find<HomeController>().fetchTodayLog(); // Refresh Home
+        Get.until((route) => route.settings.name == Routes.HOME); // Go Home
+      }
+    } catch (e) {
+      Get.snackbar("Hata", "Yemek eklenirken bir sorun oluştu.");
+      print(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> confirmFood() async {
     isLoading.value = true;
     try {

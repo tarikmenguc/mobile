@@ -164,7 +164,22 @@ const updateUserProfile = async (userId, updateData) => {
     const multiplier = activityMultipliers[aktivite] || 1.2;
 
     // Hedefleri güncelle
-    user.hedefler.gunluk_kalori = Math.round(bmr * multiplier);
+    // Eğer updateData içinde açıkça hedef belirtildiyse (Manuel Override), onu kullan.
+    // Yoksa BMR hesabını kullan.
+    if (updateData.gunluk_kalori) {
+        user.hedefler.gunluk_kalori = updateData.gunluk_kalori;
+    } else {
+        // Kilo/Boy/Yaş değişince otomatik hesapla (Ancak kullanıcı daha önce elle girdiyse ne olacak?
+        // Basit tutalım: Profil güncellenirse (Kilo vb.) otomatik hesap tekrar devreye girer.
+        // Sadece 'gunluk_kalori' gönderilirse manual override olur.)
+        // Eğer updateData sadece kilo içeriyorsa, burada hesaplanan değeri yazarız.
+        user.hedefler.gunluk_kalori = Math.round(bmr * multiplier);
+    }
+
+    if (updateData.su_hedefi_ml) {
+        user.hedefler.su_hedefi_ml = updateData.su_hedefi_ml;
+    }
+    // Su hedefi için otomatik bir formül şu an yok (default 2500 kalıyor veya manuel değişiyor)
 
     await user.save();
 

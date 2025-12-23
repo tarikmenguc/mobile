@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mobile/app/routes/app_routes.dart';
 import 'package:mobile/data/services/dio_service.dart';
+import '../../home/controllers/home_controller.dart';
 
 class ProfileController extends GetxController {
   final box = GetStorage();
@@ -101,5 +102,74 @@ class ProfileController extends GetxController {
         onConfirm: () {
           updateWeight(weightCtrl.text);
         });
+  }
+
+  void showEditGoalDialog(String type) {
+    // type: 'calorie' or 'water'
+    final isCalorie = type == 'calorie';
+    final TextEditingController ctrl = TextEditingController();
+
+    Get.defaultDialog(
+        title: isCalorie ? "Günlük Kalori Hedefi" : "Günlük Su Hedefi",
+        content: Column(
+          children: [
+            Text(
+              isCalorie
+                  ? "Otomatik hesaplanan değeri değiştirmek istiyor musunuz?"
+                  : "Günlük su hedefinizi değiştirmek istiyor musunuz?",
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                  labelText:
+                      isCalorie ? "Yeni Kalori (kcal)" : "Yeni Hedef (ml)",
+                  border: const OutlineInputBorder()),
+            )
+          ],
+        ),
+        textConfirm: "Kaydet",
+        textCancel: "İptal",
+        confirmTextColor: Colors.white,
+        onConfirm: () {
+          if (ctrl.text.isEmpty) return;
+          int val = int.tryParse(ctrl.text) ?? 0;
+          updateGoal(type, val);
+          Get.back();
+        });
+  }
+
+  Future<void> updateGoal(String type, int value) async {
+    try {
+      isLoading.value = true;
+      final userId = user['_id'];
+
+      Map<String, dynamic> data = {"userId": userId};
+      if (type == 'calorie') {
+        data['gunluk_kalori'] = value;
+      } else {
+        data['su_hedefi_ml'] = value;
+      }
+
+      final response = await dio.put('/auth/update', data: data);
+
+      if (response.statusCode == 200) {
+        box.write('user', response.data);
+        user.value = response.data;
+        Get.snackbar("Başarılı", "Hedef güncellendi.",
+            backgroundColor: Colors.green, colorText: Colors.white);
+
+        // Should also update Home Controller if active
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().loadGoals(); // Reload goals in Home
+        }
+      }
+    } catch (e) {
+      Get.snackbar("Hata", "Güncelleme başarısız.");
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

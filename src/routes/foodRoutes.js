@@ -6,10 +6,7 @@ const upload = require('../middleware/uploadMiddleware');
 
 // Analyze Route
 // Dosya upload için 'image' key'ini kullanıyoruz.
-router.post('/add', (req, res) => {
-    // Manuel ekleme (şimdilik confirm kullanılıyor, ayrı endpoint istenirse buraya)
-    res.status(501).json({ message: 'Not Implemented' });
-});
+router.post('/add', foodController.confirmFood);
 
 // Yeni Endpointler
 router.post('/search', foodController.searchFood);

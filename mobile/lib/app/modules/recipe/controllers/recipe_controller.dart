@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio_pkg;
+import '../../../../core/constants/api_endpoints.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../../routes/app_routes.dart';
 
 class RecipeController extends GetxController {
   final dio = dio_pkg.Dio(dio_pkg.BaseOptions(
-    baseUrl: 'http://10.0.2.2:5000/api',
+    baseUrl: ApiEndpoints.baseUrl,
     connectTimeout: const Duration(seconds: 40),
     receiveTimeout: const Duration(seconds: 40),
   ));

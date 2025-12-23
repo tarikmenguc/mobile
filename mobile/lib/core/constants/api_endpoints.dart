@@ -1,5 +1,6 @@
 class ApiEndpoints {
-  static const String baseUrl = 'http://10.0.2.2:5000/api';
+  static const String baseUrl =
+      'http://44.213.72.167:5000/api'; // AWS EC2 Instance
 
   // Auth
   static const String login = '/auth/login';

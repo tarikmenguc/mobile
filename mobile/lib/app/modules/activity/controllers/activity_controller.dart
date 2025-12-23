@@ -3,12 +3,13 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dio/dio.dart' as dio_pkg;
 import 'package:intl/intl.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../routes/app_routes.dart';
 import '../../home/controllers/home_controller.dart';
 
 class ActivityController extends GetxController {
   final dio = dio_pkg.Dio(dio_pkg.BaseOptions(
-    baseUrl: 'http://10.0.2.2:5000/api',
+    baseUrl: ApiEndpoints.baseUrl,
   ));
   final box = GetStorage();
 

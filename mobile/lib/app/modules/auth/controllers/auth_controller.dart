@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../routes/app_routes.dart';
 
 class AuthController extends GetxController {
   final isLoading = false.obs;
   final box = GetStorage();
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:5000/api', // Android Emulator Loopback
+    baseUrl: ApiEndpoints.baseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));

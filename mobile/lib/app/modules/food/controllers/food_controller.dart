@@ -6,12 +6,13 @@ import 'package:dio/dio.dart' as dio_pkg;
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../routes/app_routes.dart';
 import '../../home/controllers/home_controller.dart';
 
 class FoodController extends GetxController {
   final dio = dio_pkg.Dio(dio_pkg.BaseOptions(
-    baseUrl: 'http://10.0.2.2:5000/api',
+    baseUrl: ApiEndpoints.baseUrl,
     connectTimeout: const Duration(seconds: 30), // AI takes time
     receiveTimeout: const Duration(seconds: 30),
   ));

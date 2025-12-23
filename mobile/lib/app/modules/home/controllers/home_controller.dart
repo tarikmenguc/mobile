@@ -1,11 +1,12 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import 'package:intl/intl.dart';
 
 class HomeController extends GetxController {
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:5000/api',
+    baseUrl: ApiEndpoints.baseUrl,
   ));
   final box = GetStorage();
 

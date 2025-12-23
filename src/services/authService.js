@@ -65,6 +65,7 @@ const registerUser = async (userData) => {
             _id: user.id,
             ad_soyad: user.ad_soyad,
             email: user.email,
+            profil: user.profil, // Added profile data
             hedefler: user.hedefler,
             token: generateToken(user._id)
         };
@@ -98,6 +99,7 @@ const loginUser = async (email, password) => {
         _id: user.id,
         ad_soyad: user.ad_soyad,
         email: user.email,
+        profil: user.profil, // Added profile data
         hedefler: user.hedefler,
         token: generateToken(user._id)
     };
